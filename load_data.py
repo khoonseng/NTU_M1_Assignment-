@@ -70,7 +70,7 @@ print("\nNumber of entries with invalid average salary data:", invalid_avg_salar
 print("duplicates rows found:",filtered_df.duplicated().sum())
 print("duplicates job post ids found:",filtered_df.duplicated(subset=['metadata_jobPostId']).sum())
 
-#check if company name contains similarentries with different cases or symbols
+#check if company name contains similar entries with different cases or symbols
 company_names = filtered_df['postedCompany_name'].unique()
 company_name_df = pd.DataFrame(company_names, columns=['postedCompany_name'])
 company_name_df.sort_values(by=['postedCompany_name'], inplace=True)
