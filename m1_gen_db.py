@@ -4,8 +4,8 @@ import pandas as pd
 import ast
 
 def preprocess_and_normalize(csv_path, 
-                            direct_db_name='SGJobData.db', 
-                            normalized_db_name='SGJobData_Normalized.db'):
+                            direct_db_name='db/SGJobData.db', 
+                            normalized_db_name='db/SGJobData_Normalized.db'):
     """
     Preprocess CSV containing job data with nested categories, create a direct database,
     and normalize into 3NF schema in a separate database.
@@ -83,6 +83,54 @@ def preprocess_and_normalize(csv_path,
         if 'categories' in normalized_df.columns:
             normalized_df = normalized_df.drop('categories', axis=1)
         
+        # map categories to generic sectors
+        sector_map = {                        
+                        'Accounting / Auditing / Taxation': 'Financial & Professional Services',
+                        'Admin / Secretarial': 'Business Support & Administration',
+                        'Advertising / Media': 'Creative, Media & Design',
+                        'Architecture / Interior Design': 'Built Environment & Real Estate',
+                        'Banking and Finance': 'Financial & Professional Services',
+                        'Building and Construction': 'Built Environment & Real Estate',
+                        'Consulting': 'Financial & Professional Services',
+                        'Customer Service': 'Sales, Retail & Personal Services',
+                        'Design': 'Creative, Media & Design',
+                        'Education and Training': 'Public & Social Services',
+                        'Engineering': 'Engineering & Manufacturing',
+                        'Entertainment': 'Creative, Media & Design',
+                        'Environment / Health': 'Public & Social Services',
+                        'Events / Promotions': 'Sales, Retail & Personal Services',
+                        'F&B': 'Hospitality & Tourism',
+                        'General Management': 'Business Support & Administration',
+                        'General Work': 'Others & General Work',
+                        'Healthcare / Pharmaceutical': 'Healthcare & Life Sciences',
+                        'Hospitality': 'Hospitality & Tourism',
+                        'Human Resources': 'Business Support & Administration',
+                        'Information Technology': 'Technology & Telecommunications',
+                        'Insurance': 'Financial & Professional Services',
+                        'Legal': 'Financial & Professional Services',
+                        'Logistics / Supply Chain': 'Logistics, Trade & Supply Chain',
+                        'Manufacturing': 'Engineering & Manufacturing',
+                        'Marketing / Public Relations': 'Creative, Media & Design',
+                        'Medical / Therapy Services': 'Healthcare & Life Sciences',
+                        'Others': 'Others & General Work',
+                        'Personal Care / Beauty': 'Sales, Retail & Personal Services',
+                        'Precision Engineering': 'Engineering & Manufacturing',
+                        'Professional Services': 'Financial & Professional Services',
+                        'Public / Civil Service': 'Public & Social Services',
+                        'Purchasing / Merchandising': 'Logistics, Trade & Supply Chain',
+                        'Real Estate / Property Management': 'Built Environment & Real Estate',
+                        'Repair and Maintenance': 'Engineering & Manufacturing',
+                        'Risk Management': 'Financial & Professional Services',
+                        'Sales / Retail': 'Sales, Retail & Personal Services',
+                        'Sciences / Laboratory / R&D': 'Healthcare & Life Sciences',
+                        'Security and Investigation': 'Public & Social Services',
+                        'Social Services': 'Public & Social Services',
+                        'Telecommunications': 'Technology & Telecommunications',
+                        'Travel / Tourism': 'Hospitality & Tourism',
+                        'Wholesale Trade': 'Logistics, Trade & Supply Chain'
+                    }
+        normalized_df['Sector'] = normalized_df['Cat_Name'].map(sector_map)
+
         print(f"Created {len(normalized_df):,} normalized rows")
         
         # === STEP 4: CREATE DIRECT (DENORMALIZED) DATABASE ===
@@ -111,7 +159,8 @@ def preprocess_and_normalize(csv_path,
             CREATE TABLE Categories AS
             SELECT DISTINCT 
                 Cat_ID,
-                Cat_Name
+                Cat_Name,
+                Sector
             FROM normalized_data
             WHERE Cat_ID IS NOT NULL
             ORDER BY Cat_ID
@@ -163,7 +212,7 @@ def preprocess_and_normalize(csv_path,
         print(f"   - Jobs: {norm_con.execute('SELECT COUNT(*) FROM Jobs').fetchone()[0]} distinct jobs")
         print(f"   - JobCategories: {norm_con.execute('SELECT COUNT(*) FROM JobCategories').fetchone()[0]} relationships")
         
-        norm_con.close()
+        norm_con.close()        
         return True
         
     except Exception as e:
