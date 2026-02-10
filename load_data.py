@@ -7,7 +7,8 @@ pd.set_option('display.float_format', '{:.2f}'.format)
 
 # Use read_csv to load the data into a DataFrame
 # By default, it assumes the first row is the header
-csv_file_path = "data/SGJobData.csv"
+# remove csv_file_path = "data/SGJobData.csv" to allow user to input their filepath
+csv_file_path =  input("Enter the input markdown file path: ").strip()
 df = pd.read_csv(csv_file_path)
 
 #print(df.size)
