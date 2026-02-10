@@ -150,27 +150,57 @@ def preprocess_and_normalize(csv_path,
         norm_con = duckdb.connect(normalized_db_name)
         norm_con.register('normalized_data', normalized_df)
         
-        # Create normalized schema (3NF) with three tables:
-        
+        # Create normalized schema (3NF) with three tables:        
         # 1. CATEGORIES DIMENSION TABLE
         # Contains unique category entities with their attributes
         # This eliminates duplicate category information
         norm_con.execute("""
-            CREATE TABLE Categories AS
-            SELECT DISTINCT 
-                Cat_ID,
-                Cat_Name,
-                Sector
+            CREATE TABLE Categories (
+                Cat_ID INT PRIMARY KEY,
+                Cat_Name VARCHAR NOT NULL,      
+                Sector VARCHAR NOT NULL         
+            );
+        """) 
+              
+        norm_con.execute("""
+            INSERT INTO Categories
+            SELECT DISTINCT Cat_ID,
+                            Cat_Name,
+                            Sector
             FROM normalized_data
             WHERE Cat_ID IS NOT NULL
-            ORDER BY Cat_ID
+            ORDER BY Cat_ID;
         """)
         
         # 2. JOBS FACT TABLE
         # Contains core job information without repeating categories
         # This table has one row per job with all job-specific attributes
         norm_con.execute("""
-            CREATE TABLE Jobs AS
+            CREATE TABLE Jobs (
+                metadata_jobPostId VARCHAR PRIMARY KEY,
+                employmentTypes VARCHAR,
+                metadata_expiryDate DATE,
+                metadata_isPostedOnBehalf BOOLEAN,
+                metadata_newPostingDate DATE,
+                metadata_originalPostingDate DATE,
+                metadata_repostCount INT,
+                metadata_totalNumberJobApplication INT,
+                metadata_totalNumberOfView INT,
+                minimumYearsExperience INT,
+                numberOfVacancies INT,
+                positionLevels VARCHAR,
+                postedCompany_name VARCHAR,
+                salary_maximum DECIMAL,
+                salary_minimum DECIMAL,
+                salary_type VARCHAR,
+                status_jobStatus VARCHAR,
+                title VARCHAR,
+                average_salary DECIMAL
+            );
+        """)       
+        
+        norm_con.execute("""
+            INSERT INTO Jobs
             SELECT DISTINCT
                 metadata_jobPostId,
                 employmentTypes,
@@ -191,19 +221,29 @@ def preprocess_and_normalize(csv_path,
                 status_jobStatus,
                 title,
                 average_salary
-            FROM normalized_data
+            FROM normalized_data;
         """)
         
         # 3. JOBCATEGORIES JUNCTION TABLE
         # Resolves many-to-many relationship between Jobs and Categories
         # A job can have multiple categories, and a category can belong to multiple jobs
         norm_con.execute("""
-            CREATE TABLE JobCategories AS
+            CREATE TABLE JobCategories (
+                metadata_jobPostId VARCHAR NOT NULL,
+                Cat_ID INT NOT NULL,      
+                CONSTRAINT jobcat_pk PRIMARY KEY (metadata_jobPostId, Cat_ID),
+                CONSTRAINT jobcat_fk1 FOREIGN KEY (metadata_jobPostId) REFERENCES Jobs (metadata_jobPostId),
+                CONSTRAINT jobcat_fk2 FOREIGN KEY (Cat_ID) REFERENCES Categories (Cat_ID)
+            );
+        """) 
+        
+        norm_con.execute("""
+            INSERT INTO JobCategories
             SELECT DISTINCT
                 metadata_jobPostId,
                 Cat_ID
             FROM normalized_data
-            WHERE Cat_ID IS NOT NULL
+            WHERE Cat_ID IS NOT NULL;
         """)
         
         # === STEP 6: REPORT FINAL STATISTICS ===
@@ -212,7 +252,7 @@ def preprocess_and_normalize(csv_path,
         print(f"   - Jobs: {norm_con.execute('SELECT COUNT(*) FROM Jobs').fetchone()[0]} distinct jobs")
         print(f"   - JobCategories: {norm_con.execute('SELECT COUNT(*) FROM JobCategories').fetchone()[0]} relationships")
         
-        norm_con.close()        
+        norm_con.close()       
         return True
         
     except Exception as e:
