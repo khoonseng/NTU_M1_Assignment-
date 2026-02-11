@@ -1,6 +1,3 @@
-# ============================================================================
-# COMPLETE SALARY DATA ANALYSIS AND CLEANING SCRIPT
-# ============================================================================
 
 import duckdb
 import pandas as pd
@@ -738,7 +735,7 @@ def industry_salary_analysis(df: pd.DataFrame) -> None:
 
 
 def save_datasets(filtered_df: pd.DataFrame) -> None:
-    """
+
     Save the filtered job dataset to a CSV file.
     
     Args:
@@ -756,9 +753,7 @@ def save_datasets(filtered_df: pd.DataFrame) -> None:
 
 def main():
     """Main function to run the complete analysis pipeline."""
-    print("=" * 80)
-    print("SINGAPORE JOB SALARY ANALYSIS PIPELINE")
-    print("=" * 80)
+  
     
     # Database path
     db_path = "/Users/simgsr/Documents/GitHub/NTU_M1_Assignment--main/data/SGJobData_Normalized.db"
