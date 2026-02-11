@@ -1,4 +1,4 @@
-*.csv
+
 *.db
 data/
 .DS_Store
