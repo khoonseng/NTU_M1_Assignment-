@@ -19,11 +19,11 @@
 - no duplicates observed
 
 ### (5) check if text columns (postedCompany_name, title) contain inconsistent cases and special characters
-- 447 out of 53,151 company names are in upper case. to standardise all company names to be capitalized
 - replace ampersand to "and"
 - remove special characters with regex
 - remove leading and trailing whitespace
 - replace multiple spaces with a single space
+- 447 out of 53,151 company names are in upper case. to standardise all company names to be capitalized
 
 ### (6) identify the employment types of jobs to focus on
 - based on employment types, to focus only on 95% of jobs: Permanent (44%), Full Time (38%) and Contract (13%)
